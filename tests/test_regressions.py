@@ -17,8 +17,11 @@ from nlweb_goodmem import (
     GoodMemObjectLookupProvider,
     GoodMemRetrievalProvider,
     GoodMemSpaceError,
+    GoodMemUploadError,
+    filters,
     schema_to_text,
     to_memory_fields,
+    upload_documents,
 )
 from tests.conftest import Recorder, load_json, ndjson_events, ndjson_response
 
@@ -234,3 +237,93 @@ def test_fixtures_are_real_server_bytes():
     codes = [e["status"]["code"]
              for e in ndjson_events("retrieve_broken_reranker.ndjson") if "status" in e]
     assert "RERANKING_FAILED" in codes
+
+
+# ------------------------------------------------ coverage gaps (2026-09-24)
+async def test_an_unknown_status_code_is_surfaced_not_dropped(recorder, client, caplog):
+    """Contract Q3: the SDK decodes a code it does not know as None. The
+    items are kept, and the code is logged as UNKNOWN rather than vanishing."""
+    import logging
+
+    events = ndjson_events("retrieve_site.ndjson")
+    events.insert(0, {"status": {"code": "A_CODE_FROM_THE_FUTURE", "message": "hello"}})
+    recorder.route("POST", RETRIEVE, ndjson_response(events))
+    p = GoodMemRetrievalProvider(space_id=SPACE, client=client)
+    with caplog.at_level(logging.WARNING, logger="nlweb_goodmem.provider"):
+        items = await p.search("noodle soup", SITE, num_results=5)
+    assert len(items) == 2, "an unknown code must never discard results"
+    assert "UNKNOWN" in caplog.text
+
+
+async def test_server_order_is_preserved_and_no_threshold_is_sent(recorder, client):
+    """RetrievedItem has no score; the only thing we owe NLWeb is the
+    server's order, untouched, and never a relevance_threshold that would
+    silently drop results on a reranker whose scale is not 0-1."""
+    events = ndjson_events("retrieve_all.ndjson")
+    expected = [
+        e["retrievedItem"]["chunk"]["chunk"]["memoryId"] for e in events if "retrievedItem" in e
+    ]
+    memories = {e["memoryDefinition"]["memoryId"]: e["memoryDefinition"]["metadata"]["url"]
+                for e in events if "memoryDefinition" in e}
+    recorder.route("POST", RETRIEVE, ndjson_response(events))
+    p = GoodMemRetrievalProvider(space_id=SPACE, client=client, reranker_id="rr")
+    items = await p.search("noodle soup", "all", num_results=10)
+    assert [i.url for i in items] == [memories[m] for m in expected]
+    assert "relevance_threshold" not in recorder.last_body["postProcessor"]["config"]
+
+
+def test_filter_refuses_control_characters():
+    """The live grammar rejects a raw newline inside a literal with a 400."""
+    with pytest.raises(ValueError, match="control characters"):
+        filters.text_equals("site", "a\nb")
+
+
+def test_the_api_key_never_appears_in_a_repr():
+    p = GoodMemRetrievalProvider(space_id=SPACE, base_url="https://x", api_key="gm_SECRET_VALUE")
+    assert "gm_SECRET_VALUE" not in repr(p)
+    assert "gm_SECRET_VALUE" not in repr(vars(p))
+    assert "gm_SECRET_VALUE" not in repr(p._conn)
+
+
+async def test_a_partial_batch_failure_is_reported_with_what_landed(recorder, client):
+    """P38: the server answers HTTP 200 even when an item failed, so the
+    per-item success flag is the only signal. The ids that did land are
+    carried on the error so the caller can recover instead of retrying."""
+    landed = load_json("memories_list.json")["memories"][0]
+    recorder.route("POST", "/v1/memories:batchCreate", httpx.Response(200, json={
+        "results": [
+            {"memory": landed, "success": True},
+            {"success": False, "error": {"code": 5, "message": "Space not found"}},
+        ]
+    }))
+    p = GoodMemRetrievalProvider(space_id=SPACE, client=client)
+    docs = [{"@type": "Thing", "url": "https://x/1", "name": "one"},
+            {"@type": "Thing", "url": "https://x/2", "name": "two"}]
+    with pytest.raises(GoodMemUploadError, match="1 of 2 documents failed") as excinfo:
+        await upload_documents(p, docs, site="s", wait=False)
+    assert excinfo.value.created_memory_ids == [landed["memoryId"]]
+
+
+async def test_errors_propagate_with_the_servers_reason(recorder, client):
+    """0.1.0 caught everything and returned an MDN link as a JSON string."""
+    recorder.route("POST", RETRIEVE, httpx.Response(400, json={
+        "errors": [{"field": "spaceKeys[0].spaceId", "message": "Invalid space ID format"}]
+    }))
+    p = GoodMemRetrievalProvider(space_id="not-a-uuid", client=client)
+    with pytest.raises(Exception, match="Invalid space ID format"):
+        await p.search("q", SITE)
+
+
+async def test_an_ambiguous_space_name_is_an_error(recorder, client):
+    recorder.route("GET", "/v1/spaces", httpx.Response(200, json={
+        "spaces": [_space("s", SPACE, "e1"), _space("s", "other-id", "e1")], "nextToken": None}))
+    p = GoodMemRetrievalProvider(space_name="s", client=client)
+    with pytest.raises(GoodMemSpaceError, match="2 spaces are named"):
+        await p.search("q", SITE)
+
+
+async def test_get_sites_collects_the_distinct_values(recorder, client):
+    recorder.route("GET", f"/v1/spaces/{SPACE}/memories",
+                   httpx.Response(200, json=load_json("memories_list.json")))
+    p = GoodMemRetrievalProvider(space_id=SPACE, client=client)
+    assert set(await p.get_sites()) == {"recipes.example.com", "films.org"}
