@@ -1,48 +1,90 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
 [project]
 name = "nlweb-goodmem"
-description = "GoodMem integration for NLWeb."
-authors = [{ name = "GoodMem", email = "support@goodmem.ai" }]
+version = "0.2.0"
+description = "GoodMem as an NLWeb retrieval provider — Schema.org retrieval, site filtering, and object lookup."
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.1.0"
+authors = [{ name = "GoodMem", email = "support@goodmem.ai" }]
 license-files = ["LICENSE"]
-urls.homepage = "https://github.com/PAIR-Systems-Inc/goodmem_nlweb"
-urls.source = "https://github.com/PAIR-Systems-Inc/goodmem_nlweb"
-urls.issues = "https://github.com/PAIR-Systems-Inc/goodmem_nlweb/issues"
+keywords = ["goodmem", "nlweb", "schema.org", "rag", "retrieval", "vector-search"]
 classifiers = [
-  "License :: OSI Approved :: Apache Software License",
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Typing :: Typed",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "httpx>=0.24.0,<1",
+    # 0.1.34 is the first release whose retrieve() decodes status events.
+    "goodmem>=0.1.34",
+    "nlweb-core>=0.7",
+    "typing-extensions>=4.7",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
-    "pytest-timeout",
-    "build",
-    "twine",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
+    # Pinned: ruff's default rule set changes between minor releases, so an
+    # unpinned range makes a local run and a CI run different checks.
+    "ruff==0.16.8",
+    "mypy==1.18.2",
 ]
-examples = [
-    "openai>=1.12.0",
-]
+
+[project.urls]
+homepage = "https://github.com/PAIR-Systems-Inc/goodmem_nlweb"
+source = "https://github.com/PAIR-Systems-Inc/goodmem_nlweb"
+issues = "https://github.com/PAIR-Systems-Inc/goodmem_nlweb/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nlweb_goodmem"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/nlweb_goodmem", "tests", "README.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
 
 [tool.pytest.ini_options]
-testpaths = ['tests']
-addopts = "-ra -q -r fEX"
-timeout = 120
+testpaths = ["tests"]
+asyncio_mode = "auto"
+# The live fixture is module-scoped and owns one SDK client; without matching
+# loop scopes each test gets a fresh event loop and the client's locks raise
+# "bound to a different event loop".
+asyncio_default_fixture_loop_scope = "module"
+asyncio_default_test_loop_scope = "module"
 markers = [
-    "integration: marks tests as integration tests that require external services",
+    "integration: needs a live GoodMem server (GOODMEM_BASE_URL + GOODMEM_API_KEY)",
 ]
 
-[build-system]
-requires = ["flit-core >= 3.11,<4.0"]
-build-backend = "flit_core.buildapi"
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+extend-select = ["E", "F", "B", "I", "UP", "RUF", "PYI", "TRY", "PERF"]
+ignore = ["E501", "TRY003", "TRY300"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["nlweb_goodmem"]
+mypy_path = "src"
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+
+# nlweb-core ships no py.typed marker, so its types are invisible to mypy.
+[[tool.mypy.overrides]]
+module = ["nlweb_core.*"]
+ignore_missing_imports = true
