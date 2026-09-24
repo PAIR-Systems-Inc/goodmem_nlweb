@@ -22,7 +22,7 @@ SDK.
   so NLWeb can enrich a result with the full Schema.org object.
 - **`upload_documents()`** and the Schema.org mapping in `nlweb_goodmem._schema`.
 - **`get_sites()`** — the distinct sites present in a space.
-- 26 offline tests over captured server bytes and 13 live tests with verified
+- 34 offline tests over captured server bytes and 13 live tests with verified
   teardown. 0.1.0 had 10 tests that passed against every defect below, and no
   workflow ever ran them.
 

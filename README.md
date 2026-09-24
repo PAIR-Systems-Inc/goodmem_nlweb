@@ -115,15 +115,20 @@ cannot register with it — that one needs an upstream PR.
 
 ```bash
 pip install -e ".[dev]"
-ruff check src tests && mypy && pytest -m "not integration"
+ruff check src tests examples && mypy && pytest -m "not integration"
 ```
 
 The offline suite replays NDJSON captured from a live GoodMem server
 (v1.0.320) through the real SDK decoders. The live suite needs a server:
 
 ```bash
-GOODMEM_BASE_URL=… GOODMEM_API_KEY=… GOODMEM_EMBEDDER_ID=… pytest -m integration
+GOODMEM_BASE_URL=… GOODMEM_API_KEY=… GOODMEM_EMBEDDER_ID=… \
+  GOODMEM_RERANKER_ID=… GOODMEM_VERIFY_SSL=0 \
+  pytest -m integration
 ```
+
+`GOODMEM_RERANKER_ID` is optional — the reranker test skips without it.
+`GOODMEM_VERIFY_SSL=0` is for a local server with a self-signed certificate.
 
 There is no default credential anywhere in this repository.
 
