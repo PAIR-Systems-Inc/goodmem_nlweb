@@ -1,0 +1,65 @@
+{
+  "memories": [
+    {
+      "memoryId": "01a0d101-fa1c-7226-9190-ab54cea7b65d",
+      "spaceId": "01a0d101-ea57-7695-b097-5b92f418eff8",
+      "originalContentLength": 61,
+      "originalContentSha256": "3e07a55a997a64fadcc345ba13ed85ae7ed5dd7535ed92735b797188fd3de745",
+      "contentType": "text/plain",
+      "processingStatus": "COMPLETED",
+      "pageImageStatus": "PENDING",
+      "pageImageCount": 0,
+      "metadata": {
+        "url": "https://films.org/m/dune",
+        "name": "Dune",
+        "site": "films.org",
+        "schema_json": "{\"@type\": \"Movie\", \"url\": \"https://films.org/m/dune\", \"name\": \"Dune\", \"description\": \"A noble family becomes embroiled in a war over Arrakis.\"}"
+      },
+      "createdAt": 1790212962845,
+      "updatedAt": 1790212964143,
+      "createdById": "019cfcff-37c7-75ef-be71-06c83dae99c3",
+      "updatedById": "019cfcff-37c7-75ef-be71-06c83dae99c3"
+    },
+    {
+      "memoryId": "01a0d101-ea63-73b5-972e-335499daffc4",
+      "spaceId": "01a0d101-ea57-7695-b097-5b92f418eff8",
+      "originalContentLength": 67,
+      "originalContentSha256": "6401837674f41ceed9059578cbc8f826624b53a6f41099a3130f46c4447cda85",
+      "contentType": "text/plain",
+      "processingStatus": "COMPLETED",
+      "pageImageStatus": "PENDING",
+      "pageImageCount": 0,
+      "metadata": {
+        "url": "https://ex.com/r/pho",
+        "name": "Beef Pho",
+        "site": "recipes.example.com",
+        "schema_json": "{\"@type\": \"Recipe\", \"url\": \"https://ex.com/r/pho\", \"name\": \"Beef Pho\", \"description\": \"Vietnamese rice noodle soup simmered with charred ginger.\"}"
+      },
+      "createdAt": 1790212958819,
+      "updatedAt": 1790212961200,
+      "createdById": "019cfcff-37c7-75ef-be71-06c83dae99c3",
+      "updatedById": "019cfcff-37c7-75ef-be71-06c83dae99c3"
+    },
+    {
+      "memoryId": "01a0d101-ea63-73b5-972e-335499daffc3",
+      "spaceId": "01a0d101-ea57-7695-b097-5b92f418eff8",
+      "originalContentLength": 72,
+      "originalContentSha256": "5ac551de88fa48de9c85a8c1dfdc65d74d12e799fcfd1fb80c362968745a3a37",
+      "contentType": "text/plain",
+      "processingStatus": "COMPLETED",
+      "pageImageStatus": "PENDING",
+      "pageImageCount": 0,
+      "metadata": {
+        "url": "https://ex.com/r/laksa",
+        "name": "Singapore Laksa",
+        "site": "recipes.example.com",
+        "schema_json": "{\"@type\": \"Recipe\", \"url\": \"https://ex.com/r/laksa\", \"name\": \"Singapore Laksa\", \"description\": \"A coconut curry noodle soup with prawns and tofu puffs.\"}"
+      },
+      "createdAt": 1790212958819,
+      "updatedAt": 1790212961281,
+      "createdById": "019cfcff-37c7-75ef-be71-06c83dae99c3",
+      "updatedById": "019cfcff-37c7-75ef-be71-06c83dae99c3"
+    }
+  ],
+  "nextToken": null
+}
