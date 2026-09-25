@@ -25,6 +25,12 @@ retrieval:
 It implements `nlweb_core.retriever.RetrievalProvider`, so `search()` returns
 real `RetrievedItem` objects and `close()` releases the client.
 
+`space_id`, `embedder_id` and `reranker_id` must be GoodMem ids, which are
+UUIDs; any other value raises `ValueError` when the provider is built, before
+a request is made. The GoodMem SDK places ids in the URL path unencoded, so a
+value like `../spaces/<id>` would otherwise send the request to a different
+endpoint.
+
 ## Sites
 
 NLWeb filters every call by *site*; GoodMem has no such concept. A site is
@@ -84,6 +90,10 @@ await lookup.get_by_id("https://ex.com/r/laksa")   # the full Schema.org object
 
 Implements `ObjectLookupProvider`, so NLWeb can enrich a truncated search
 result with the complete object without a second datastore.
+
+The id NLWeb passes here comes from a web request. It is the item's URL, not
+a GoodMem id, so it is not required to be a UUID: it only ever travels as an
+escaped value in the `filter` query parameter, never in the URL path.
 
 ## Scores, and why there are none
 

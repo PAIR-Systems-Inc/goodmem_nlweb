@@ -28,6 +28,13 @@ from tests.conftest import Recorder, load_json, ndjson_events, ndjson_response
 SPACE = load_json("space.json")["spaceId"]
 RETRIEVE = "/v1/memories:retrieve"
 SITE = "recipes.example.com"
+# Ids are UUIDs: anything else is refused before a request (tests/test_ids.py).
+EMBEDDER_A = "01a0d0f1-0000-7000-8000-00000000000a"
+EMBEDDER_B = "01a0d0f1-0000-7000-8000-00000000000b"
+OTHER_SPACE = "01a0d101-0000-7000-8000-0000000000ff"
+RERANKER = "01a0d0f1-0000-7000-8000-0000000000cc"
+# The reranker id the broken-reranker fixture was recorded with.
+MISSING_RERANKER = "00000000-0000-0000-0000-000000000000"
 
 
 def make(recorder: Recorder, client: Any, fixture: str, **kw: Any) -> GoodMemRetrievalProvider:
@@ -102,7 +109,7 @@ async def test_a_broken_reranker_keeps_its_results(recorder, client):
     them and reported success."""
     raw = ndjson_events("retrieve_broken_reranker.ndjson")
     assert sum("status" in e for e in raw) == 3
-    p = make(recorder, client, "retrieve_broken_reranker.ndjson", reranker_id="bogus")
+    p = make(recorder, client, "retrieve_broken_reranker.ndjson", reranker_id=MISSING_RERANKER)
     items = await p.search("noodle soup", SITE, num_results=5)
     assert len(items) == 2
 
@@ -202,9 +209,9 @@ def _space(name: str, space_id: str, embedder: str) -> dict[str, Any]:
 
 async def test_attach_by_name_refuses_a_different_embedder(recorder, client):
     recorder.route("GET", "/v1/spaces",
-                   httpx.Response(200, json={"spaces": [_space("s", SPACE, "emb-1")], "nextToken": None}))
-    p = GoodMemRetrievalProvider(space_name="s", embedder_id="emb-2", client=client)
-    with pytest.raises(GoodMemSpaceError, match="not emb-2"):
+                   httpx.Response(200, json={"spaces": [_space("s", SPACE, EMBEDDER_A)], "nextToken": None}))
+    p = GoodMemRetrievalProvider(space_name="s", embedder_id=EMBEDDER_B, client=client)
+    with pytest.raises(GoodMemSpaceError, match=f"not {EMBEDDER_B}"):
         await p.search("q", SITE)
 
 
@@ -266,7 +273,7 @@ async def test_server_order_is_preserved_and_no_threshold_is_sent(recorder, clie
     memories = {e["memoryDefinition"]["memoryId"]: e["memoryDefinition"]["metadata"]["url"]
                 for e in events if "memoryDefinition" in e}
     recorder.route("POST", RETRIEVE, ndjson_response(events))
-    p = GoodMemRetrievalProvider(space_id=SPACE, client=client, reranker_id="rr")
+    p = GoodMemRetrievalProvider(space_id=SPACE, client=client, reranker_id=RERANKER)
     items = await p.search("noodle soup", "all", num_results=10)
     assert [i.url for i in items] == [memories[m] for m in expected]
     assert "relevance_threshold" not in recorder.last_body["postProcessor"]["config"]
@@ -305,18 +312,23 @@ async def test_a_partial_batch_failure_is_reported_with_what_landed(recorder, cl
 
 
 async def test_errors_propagate_with_the_servers_reason(recorder, client):
-    """0.1.0 caught everything and returned an MDN link as a JSON string."""
+    """0.1.0 caught everything and returned an MDN link as a JSON string.
+
+    The reply is what a live server sent for a malformed space id. Since
+    0.2.1 a malformed id is refused before it is sent, so a well-formed one
+    carries the request here; what is under test is only that the server's
+    reason reaches the caller."""
     recorder.route("POST", RETRIEVE, httpx.Response(400, json={
         "errors": [{"field": "spaceKeys[0].spaceId", "message": "Invalid space ID format"}]
     }))
-    p = GoodMemRetrievalProvider(space_id="not-a-uuid", client=client)
+    p = GoodMemRetrievalProvider(space_id=OTHER_SPACE, client=client)
     with pytest.raises(Exception, match="Invalid space ID format"):
         await p.search("q", SITE)
 
 
 async def test_an_ambiguous_space_name_is_an_error(recorder, client):
     recorder.route("GET", "/v1/spaces", httpx.Response(200, json={
-        "spaces": [_space("s", SPACE, "e1"), _space("s", "other-id", "e1")], "nextToken": None}))
+        "spaces": [_space("s", SPACE, EMBEDDER_A), _space("s", OTHER_SPACE, EMBEDDER_A)], "nextToken": None}))
     p = GoodMemRetrievalProvider(space_name="s", client=client)
     with pytest.raises(GoodMemSpaceError, match="2 spaces are named"):
         await p.search("q", SITE)
