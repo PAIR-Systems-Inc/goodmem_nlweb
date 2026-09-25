@@ -38,6 +38,24 @@ required to be a UUID; tests now pin that every payload above, and
 `<U>&max_results=500`, leaves the path at `/v1/spaces/<configured>/memories`
 with exactly one query parameter.
 
+### Fixed
+
+- **The documented NLWeb configuration now loads.** The README, the package
+  docstring and `GoodMemRetrievalProvider`'s docstring nested the options
+  under `options:`. nlweb-core 0.7 passes every key beside `import_path` and
+  `class_name` to the constructor, so the provider received one
+  `options={...}` keyword and NLWeb's startup failed with `ValueError:
+  GoodMemRetrievalProvider needs space_id or space_name`. The options now sit
+  beside `class_name`.
+- **The documented entry is named `default`.** It was `goodmem`, but
+  nlweb-core's `ask` handler calls `get_retrieval_provider("default")`; with
+  only a `goodmem` entry that raised `Retrieval provider 'default' is not
+  configured`, and alongside another `default` it was loaded and never used.
+- The README shows the `object_storage` entry for
+  `GoodMemObjectLookupProvider` (NLWeb only enriches results when one named
+  `default` exists), mentions `_env` keys such as `api_key_env`, and says that
+  an empty `embedder_id`/`reranker_id` means "not set".
+
 ### Changed
 
 - An empty `space_id` raises `space_id must be a UUID`. With `space_name`
@@ -45,8 +63,9 @@ with exactly one query parameter.
   `embedder_id` or `reranker_id` still means "not set".
 - An uppercase id is sent lowercased, and a `uuid.UUID` is accepted (0.2.0's
   `search()` and `upload_documents()` raised on one).
-- 153 offline tests (was 34): 119 in `tests/test_ids.py` drive the real SDK
-  over a socket. Tests that used placeholder ids (`"emb-1"`, `"bogus"`,
+- 159 offline tests (was 34): 119 in `tests/test_ids.py` drive the real SDK
+  over a socket, and 6 in `tests/test_config.py` load the documented YAML
+  with nlweb-core's own loader. Tests that used placeholder ids (`"emb-1"`, `"bogus"`,
   `"rr"`, `"not-a-uuid"`, `"other-id"`) now use UUIDs; the broken-reranker
   test uses the all-zero id its fixture was recorded with.
 

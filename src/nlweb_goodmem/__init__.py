@@ -4,13 +4,12 @@ Registered by configuration -- NLWeb imports the class by path, so this
 package never has to be added to NLWeb's own source tree::
 
     retrieval:
-      goodmem:
+      default:
         import_path: nlweb_goodmem
         class_name: GoodMemRetrievalProvider
-        options:
-          base_url: https://localhost:8080
-          api_key: gm_…
-          space_name: nlweb
+        base_url: https://localhost:8080
+        api_key: gm_…
+        space_name: nlweb
 
 NLWeb speaks Schema.org and filters by *site*; GoodMem stores text and
 metadata. ``nlweb_goodmem._schema`` documents the mapping.

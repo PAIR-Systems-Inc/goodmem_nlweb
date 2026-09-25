@@ -34,13 +34,12 @@ class GoodMemRetrievalProvider(RetrievalProvider):
     package never has to be added to NLWeb's own source tree::
 
         retrieval:
-          goodmem:
+          default:
             import_path: nlweb_goodmem
             class_name: GoodMemRetrievalProvider
-            options:
-              base_url: https://localhost:8080
-              api_key: gm_…
-              space_name: nlweb
+            base_url: https://localhost:8080
+            api_key: gm_…
+            space_name: nlweb
 
     NLWeb filters every call by *site*, which GoodMem has no concept of, so a
     site is stored as memory metadata and filtered server-side with GoodMem's

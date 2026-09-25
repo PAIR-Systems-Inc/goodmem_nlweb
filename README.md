@@ -13,23 +13,29 @@ NLWeb's own source tree:
 
 ```yaml
 retrieval:
-  goodmem:
+  default:
     import_path: nlweb_goodmem
     class_name: GoodMemRetrievalProvider
-    options:
-      base_url: https://localhost:8080
-      api_key: gm_…
-      space_name: nlweb
+    base_url: https://localhost:8080
+    api_key: gm_…
+    space_name: nlweb
 ```
+
+NLWeb's `ask` handler asks for the retrieval provider named `default`, so
+that is the name to give it. Options sit beside `import_path` and
+`class_name`: NLWeb passes every other key of the entry to the constructor as
+a keyword argument. A key ending in `_env` is read from the environment
+instead, so `api_key_env: GOODMEM_API_KEY` keeps the key out of the file.
 
 It implements `nlweb_core.retriever.RetrievalProvider`, so `search()` returns
 real `RetrievedItem` objects and `close()` releases the client.
 
 `space_id`, `embedder_id` and `reranker_id` must be GoodMem ids, which are
 UUIDs; any other value raises `ValueError` when the provider is built, before
-a request is made. The GoodMem SDK places ids in the URL path unencoded, so a
-value like `../spaces/<id>` would otherwise send the request to a different
-endpoint.
+a request is made. (An empty `embedder_id` or `reranker_id` means "not set";
+an empty `space_id` is refused.) The GoodMem SDK places ids in the URL path
+unencoded, so a value like `../spaces/<id>` would otherwise send the request to
+a different endpoint.
 
 ## Sites
 
@@ -89,7 +95,18 @@ await lookup.get_by_id("https://ex.com/r/laksa")   # the full Schema.org object
 ```
 
 Implements `ObjectLookupProvider`, so NLWeb can enrich a truncated search
-result with the complete object without a second datastore.
+result with the complete object without a second datastore. NLWeb does that
+when an `object_storage` provider named `default` is configured:
+
+```yaml
+object_storage:
+  default:
+    import_path: nlweb_goodmem
+    class_name: GoodMemObjectLookupProvider
+    base_url: https://localhost:8080
+    api_key: gm_…
+    space_name: nlweb
+```
 
 The id NLWeb passes here comes from a web request. It is the item's URL, not
 a GoodMem id, so it is not required to be a UUID: it only ever travels as an
