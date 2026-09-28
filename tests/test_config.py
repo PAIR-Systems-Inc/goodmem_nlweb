@@ -25,7 +25,12 @@ from nlweb_core import config as nlweb_config
 import pytest
 
 import nlweb_goodmem
-from nlweb_goodmem import GoodMemObjectLookupProvider, GoodMemRetrievalProvider
+from nlweb_goodmem import (
+    GoodMemConnection,
+    GoodMemObjectLookupProvider,
+    GoodMemRetrievalProvider,
+)
+from tests.conftest import load_json, ndjson_events, ndjson_response
 
 README = Path(__file__).resolve().parent.parent / "README.md"
 BASE_URL = "https://goodmem.test"
@@ -136,3 +141,26 @@ def test_an_env_suffixed_key_is_read_from_the_environment(
     assert "api_key_env" in yaml_text
     provider = nlweb(yaml_text).get_retrieval_provider("default")
     assert provider._conn._api_key == KEY
+
+
+async def test_a_metadata_filter_key_in_the_provider_entry_is_not_a_filter(
+    nlweb, recorder, client
+) -> None:
+    """The README: ``metadata_filter`` is a ``search()`` argument, and a
+    ``metadata_filter:`` key in the provider's entry is ignored. Pinned so the
+    README cannot drift from what NLWeb's loader actually does."""
+    space_id = load_json("space.json")["spaceId"]
+    yaml_text = (
+        _readme_yaml("retrieval").replace("space_name: nlweb", f"space_id: {space_id}")
+        + "    metadata_filter:\n      vegetarian: true\n"
+    )
+    provider = nlweb(yaml_text).get_retrieval_provider("default")
+    assert provider.space_id == space_id
+    provider._conn = GoodMemConnection(client=client)
+    recorder.route(
+        "POST",
+        "/v1/memories:retrieve",
+        ndjson_response(ndjson_events("retrieve_all.ndjson")),
+    )
+    await provider.search("q", "all", num_results=5)
+    assert "filter" not in recorder.last_body["spaceKeys"][0]

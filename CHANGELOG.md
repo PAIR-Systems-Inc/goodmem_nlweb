@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.2.2
+
+### Fixed
+
+**`metadata_filter` values are compared under the cast their type calls
+for.** `search(..., metadata_filter={...})` turned every value into
+`str(value)` and compared it as `TEXT`. GoodMem answers a comparison under the
+wrong cast with HTTP 200 and no results, so a boolean filter looked exactly
+like "nothing stored". Now `bool` is compared as `BOOLEAN` (checked before
+`int`, which it subclasses), `int`/`float` as `NUMERIC` (plain decimals), and
+`str` as `TEXT` with the same escaping as before. `None`, non-finite numbers
+and any other type raise `ValueError` before a request is made.
+
+Measured against a live server (v1.0.320) through `search()`, in a space
+holding `amman` (`{"flag": true, "n": 5, "category": "x"}`), `petra`
+(`{"flag": false, "n": 3, "category": "y"}`) and a memory with neither:
+
+| `metadata_filter` | 0.2.1 sent → matched | 0.2.2 sent → matched |
+| --- | --- | --- |
+| `{"flag": True}` | `CAST(val('$.flag') AS TEXT) = 'True'` → nothing | `CAST(val('$.flag') AS BOOLEAN) = true` → `amman` |
+| `{"flag": False}` | `… AS TEXT) = 'False'` → nothing | `… AS BOOLEAN) = false` → `petra` |
+| `{"n": 5.0}` | `CAST(val('$.n') AS TEXT) = '5.0'` → nothing | `CAST(val('$.n') AS NUMERIC) = 5.0` → `amman` |
+| `{"n": 5}` | `… AS TEXT) = '5'` → `amman` (the text of a stored 5 happens to be `'5'`) | `… AS NUMERIC) = 5` → `amman` |
+| `{"flag": True, "n": 5, "category": "x"}` (as `yaml.safe_load` gives it) | nothing | `amman` |
+| `{"flag": None}` | `… AS TEXT) = 'None'` → nothing | `ValueError`; no request |
+| `{"n": float("nan")}`, `{"tags": ["a", "b"]}` | sent as `'nan'`, `'[\'a\', \'b\']'` (recorded over the mock transport) | `ValueError`; no request |
+| `{"category": "x"}`, `{"quote": "it's"}`, `{"bs": "a\\b"}` | `TEXT`, escaped → `amman` | unchanged |
+| `{"flag": "true"}` (a string) | `… AS TEXT) = 'true'` → nothing | unchanged: a string is text |
+
+The README documents the rule under "Metadata filters", including how a
+filter read from YAML is typed (`true` is a bool, `"true"` a string) and that
+`metadata_filter` is a `search()` argument: a `metadata_filter:` key in the
+provider's NLWeb entry is ignored.
+
+### Tests
+
+- 194 offline tests (was 159). `tests/test_filters.py` (34) drives
+  `search()` through the real SDK over a mock transport and asserts on the
+  filter that reaches the wire, including the README's table, Python example
+  and YAML block; 25 of them fail on 0.2.1 (the other 9 are string, empty and
+  control-character controls that must not change). `tests/test_config.py`
+  adds one test that a `metadata_filter:` key in the provider entry sends no
+  filter.
+- 22 live tests (was 13): the fixture adds a memory with typed metadata, and
+  9 tests filter on it by bool, int, float, text and all three together, and
+  check that `False`, `4`, `"true"` and `"y"` exclude it. On 0.2.1 the bool,
+  float and combined filters fail.
+
 ## 0.2.1
 
 ### Security

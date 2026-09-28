@@ -9,6 +9,7 @@ fixture teardown, and the teardown asserts it is gone.
 
 from __future__ import annotations
 
+import asyncio
 import os
 from typing import Any
 import uuid
@@ -52,6 +53,9 @@ DOCS = [
       "description": "A noble family becomes embroiled in a war over Arrakis."}, FILMS),
 ]
 
+TYPED_URL = "https://typed.example/amman"
+TYPED_METADATA = {"flag": True, "n": 5, "category": "x"}
+
 
 @pytest.fixture(scope="module")
 async def live() -> Any:
@@ -68,6 +72,19 @@ async def live() -> Any:
     provider = GoodMemRetrievalProvider(space_id=space.space_id, client=client)
     for document, site in DOCS:
         await upload_documents(provider, [document], site=site)
+    # Typed metadata, and no site, so the site tests are unaffected.
+    typed = await client.memories.create(
+        space_id=space.space_id,
+        original_content="Amman is the capital of Jordan.",
+        content_type="text/plain",
+        metadata={"url": TYPED_URL, **TYPED_METADATA},
+    )
+    for _ in range(90):
+        memory = await client.memories.get(id=typed.memory_id)
+        if memory.processing_status == "COMPLETED":
+            break
+        await asyncio.sleep(1)
+    assert memory.processing_status == "COMPLETED"
 
     yield {"client": client, "space_id": space.space_id, "space_name": name}
 
@@ -116,6 +133,30 @@ async def test_a_quote_in_a_site_is_escaped(provider) -> None:
 
 async def test_get_sites_lists_what_is_there(provider) -> None:
     assert set(await provider.get_sites()) == {RECIPES, FILMS}
+
+
+@pytest.mark.parametrize(
+    "metadata_filter",
+    [{"flag": True}, {"n": 5}, {"n": 5.0}, {"category": "x"}, TYPED_METADATA],
+)
+async def test_typed_metadata_filters_match(provider, metadata_filter) -> None:
+    """Stored as JSON ``true`` and ``5``. 0.2.1 sent ``True`` as the TEXT
+    ``'True'`` and ``5.0`` as ``'5.0'``, and neither matched."""
+    items = await provider.search(
+        "capital of Jordan", "all", num_results=10, metadata_filter=metadata_filter
+    )
+    assert [i.url for i in items] == [TYPED_URL]
+
+
+@pytest.mark.parametrize(
+    "metadata_filter", [{"flag": False}, {"n": 4}, {"flag": "true"}, {"category": "y"}]
+)
+async def test_typed_metadata_filters_exclude(provider, metadata_filter) -> None:
+    """A string is text: ``"true"`` does not match a stored boolean."""
+    items = await provider.search(
+        "capital of Jordan", "all", num_results=10, metadata_filter=metadata_filter
+    )
+    assert items == []
 
 
 async def test_object_lookup_by_url(live) -> None:
