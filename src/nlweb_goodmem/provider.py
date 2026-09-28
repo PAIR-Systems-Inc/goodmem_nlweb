@@ -10,6 +10,7 @@ from nlweb_core.retrieved_item import RetrievedItem
 from nlweb_core.retriever import ObjectLookupProvider, RetrievalProvider
 
 from nlweb_goodmem._connection import GoodMemConnection
+from nlweb_goodmem._ids import require_uuid
 from nlweb_goodmem._results import classify, hits_from_events
 from nlweb_goodmem._schema import to_memory_fields
 from nlweb_goodmem._spaces import GoodMemSpaceError, resolve
@@ -33,13 +34,12 @@ class GoodMemRetrievalProvider(RetrievalProvider):
     package never has to be added to NLWeb's own source tree::
 
         retrieval:
-          goodmem:
+          default:
             import_path: nlweb_goodmem
             class_name: GoodMemRetrievalProvider
-            options:
-              base_url: https://localhost:8080
-              api_key: gm_…
-              space_name: nlweb
+            base_url: https://localhost:8080
+            api_key: gm_…
+            space_name: nlweb
 
     NLWeb filters every call by *site*, which GoodMem has no concept of, so a
     site is stored as memory metadata and filtered server-side with GoodMem's
@@ -57,6 +57,12 @@ class GoodMemRetrievalProvider(RetrievalProvider):
     results, and an exception here would take down an ``ask`` request that
     could still answer from another endpoint. (Retrieval status contract,
     Q4a/Q4b.)
+
+    ``space_id``, ``embedder_id`` and ``reranker_id`` must be UUIDs; anything
+    else raises ``ValueError`` here, before a request can be made. The SDK
+    puts ids into URL paths unencoded, so ``../spaces/<other>`` would reach a
+    different space. An empty ``embedder_id`` or ``reranker_id`` still means
+    "not set".
     """
 
     def __init__(
@@ -77,6 +83,14 @@ class GoodMemRetrievalProvider(RetrievalProvider):
         client: Any = None,
         **_ignored: Any,
     ) -> None:
+        # Checked at load time so a bad option fails when NLWeb builds the
+        # provider; _space() checks the space id again before every request.
+        if space_id is not None:
+            space_id = require_uuid(space_id, "space_id")
+        if embedder_id:
+            embedder_id = require_uuid(embedder_id, "embedder_id")
+        if reranker_id:
+            reranker_id = require_uuid(reranker_id, "reranker_id")
         if not (space_id or space_name):
             raise ValueError(
                 "GoodMemRetrievalProvider needs space_id or space_name in its "
@@ -101,6 +115,14 @@ class GoodMemRetrievalProvider(RetrievalProvider):
 
     # ------------------------------------------------------------ internals
     async def _space(self) -> str:
+        """The space id for the next request, checked every time.
+
+        Search, listing, lookup and ingest all name the space, and
+        ``memories.list`` puts it in the URL path
+        (``/v1/spaces/{id}/memories``). So it passes ``require_uuid`` here,
+        immediately before use, whether it was configured or is the server's
+        answer to a lookup by ``space_name``.
+        """
         if self._resolved_space_id is None:
             self._resolved_space_id = await resolve(
                 self._conn.client(),
@@ -108,7 +130,7 @@ class GoodMemRetrievalProvider(RetrievalProvider):
                 embedder_id=self.embedder_id,
                 create=self.create_space,
             )
-        return self._resolved_space_id
+        return require_uuid(self._resolved_space_id, "space_id")
 
     def _site_filter(self, site: str | Sequence[str] | None) -> str | None:
         """Build the server-side expression that scopes a search to sites.
@@ -255,7 +277,14 @@ class GoodMemObjectLookupProvider(ObjectLookupProvider):
         self._provider = GoodMemRetrievalProvider(**kwargs)
 
     async def get_by_id(self, object_id: str) -> dict[str, Any] | None:
-        """Return the object stored under ``object_id``, or None."""
+        """Return the object stored under ``object_id``, or None.
+
+        NLWeb takes ``object_id`` from a web request. It is the item's URL,
+        not a GoodMem id, so it is not required to be a UUID: it only ever
+        travels as an escaped literal inside the ``filter`` query parameter,
+        never in the URL path. The space id, which is in the path, is
+        checked by ``_space()`` before the request.
+        """
         import json
 
         client = self._provider._conn.client()
@@ -339,8 +368,13 @@ async def upload_documents(
         )
 
     if wait:
+        # Server-issued ids, but polling puts them in a URL path
+        # (/v1/memories/{id}), so they get the same check as any other.
+        try:
+            pending = {require_uuid(m, "memory_id") for m in accepted}
+        except ValueError as exc:
+            raise GoodMemUploadError(str(exc), created_memory_ids=accepted) from exc
         deadline = time.monotonic() + timeout
-        pending = set(accepted)
         while pending and time.monotonic() < deadline:
             for memory_id in list(pending):
                 memory = await client.memories.get(id=memory_id)
