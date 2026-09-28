@@ -224,7 +224,15 @@ class GoodMemRetrievalProvider(RetrievalProvider):
         num_results: int = 50,
         **kwargs: Any,
     ) -> list[RetrievedItem]:
-        """Search one or more sites. Returns items in the server's order."""
+        """Search one or more sites. Returns items in the server's order.
+
+        ``metadata_filter`` (a keyword argument) narrows the search to
+        memories whose metadata equals every given value, AND-ed with the
+        site filter. Each value is compared under the cast its Python type
+        calls for (``str`` as text, ``bool`` as boolean, ``int``/``float``
+        as a number); ``None`` and other types raise ``ValueError`` before a
+        request is made. See :func:`nlweb_goodmem.filters.from_mapping`.
+        """
         if not query or not query.strip():
             return []
         expression = combine(

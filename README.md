@@ -53,6 +53,42 @@ await provider.search_all_sites("noodle soup")                # same thing
 await provider.get_sites()                                    # ['a.com', 'b.com']
 ```
 
+## Metadata filters
+
+`search()` also takes `metadata_filter`, a mapping of metadata field to
+value. Each pair becomes a server-side equality, AND-ed with the others and
+with the site filter. GoodMem stores metadata as JSON and compares it under an
+explicit cast, and a comparison under the wrong cast is accepted and matches
+nothing, so each value is cast by its Python type:
+
+| Value | Compared as | Sent to the server |
+| --- | --- | --- |
+| `str` | text | `CAST(val('$.cuisine') AS TEXT) = 'Malaysian'` |
+| `bool` | boolean | `CAST(val('$.vegetarian') AS BOOLEAN) = true` |
+| `int`, `float` | number | `CAST(val('$.servings') AS NUMERIC) = 4` |
+
+`None`, `nan`, `inf` and any other type (a list, a dict, …) raise
+`ValueError` before a request is made. Text is escaped exactly as a site is.
+
+```python
+await provider.search("noodle soup", "recipes.example.com",
+                      metadata_filter={"vegetarian": True, "servings": 4})
+```
+
+A filter read from YAML (or JSON) keeps the type the loader gives it, so write
+each value the way it is stored: `vegetarian: true` is a boolean, while
+`vegetarian: "true"` is the string `"true"` and matches only a stored string.
+
+```yaml
+vegetarian: true
+servings: 4
+cuisine: Malaysian
+```
+
+`metadata_filter` is an argument to `search()`, not a provider option: NLWeb's
+`ask` handler does not pass one, and a `metadata_filter:` key in the
+provider's YAML entry is ignored.
+
 ## Ingesting Schema.org documents
 
 `RetrievalProvider` only reads, so ingestion is a helper rather than part of
