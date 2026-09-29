@@ -8,7 +8,13 @@ pip install goodmem-nlweb
 
 Previously published as `nlweb-goodmem` (last version on that name: 0.2.2).
 Only the name you install changed: the import is still `nlweb_goodmem`, and
-the `import_path: nlweb_goodmem` entries below stay as they are.
+the `import_path: nlweb_goodmem` entries below stay as they are. Both names
+install the same `nlweb_goodmem` package and overwrite each other's files, so
+remove the old one first:
+
+```bash
+pip uninstall -y nlweb-goodmem && pip install goodmem-nlweb
+```
 
 ## Configure
 

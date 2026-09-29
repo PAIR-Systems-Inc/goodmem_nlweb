@@ -5,10 +5,15 @@
 ### Changed
 
 **The distribution is renamed from `nlweb-goodmem` to `goodmem-nlweb`.** The
-package moved into the PAIR Systems organization on PyPI, where it is published
-under the new name. Install it with `pip install goodmem-nlweb`; `nlweb-goodmem`
-stays at 0.2.2. The import package is unchanged, so `import nlweb_goodmem` and
-NLWeb's `import_path: nlweb_goodmem` keep working as they are. No code changed.
+package moved into the PAIR Systems PyPI organisation under the
+`goodmem-<framework>` naming used by `goodmem-adk` and
+`goodmem-semantic-kernel`. `nlweb-goodmem` stays at 0.2.2. The import package
+is unchanged, so `import nlweb_goodmem` and NLWeb's
+`import_path: nlweb_goodmem` keep working as they are. No code changed.
+
+Both distributions ship the same `nlweb_goodmem` package, so installing both
+makes them overwrite each other's files. Remove the old one first:
+`pip uninstall -y nlweb-goodmem && pip install goodmem-nlweb`.
 
 ## 0.2.2
 
