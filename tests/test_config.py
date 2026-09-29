@@ -24,8 +24,8 @@ import re
 from nlweb_core import config as nlweb_config
 import pytest
 
-import nlweb_goodmem
-from nlweb_goodmem import (
+import goodmem_nlweb
+from goodmem_nlweb import (
     GoodMemConnection,
     GoodMemObjectLookupProvider,
     GoodMemRetrievalProvider,
@@ -92,7 +92,7 @@ def _reset_provider_map(name: str) -> None:
 
 RETRIEVAL_SOURCES = {
     "README": lambda: _readme_yaml("retrieval"),
-    "nlweb_goodmem.__doc__": lambda: _docstring_yaml(nlweb_goodmem.__doc__),
+    "goodmem_nlweb.__doc__": lambda: _docstring_yaml(goodmem_nlweb.__doc__),
     "GoodMemRetrievalProvider.__doc__": lambda: _docstring_yaml(
         GoodMemRetrievalProvider.__doc__
     ),

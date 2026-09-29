@@ -19,13 +19,13 @@ from goodmem import AsyncGoodmem
 from nlweb_core.retrieved_item import RetrievedItem
 import pytest
 
-from nlweb_goodmem import (
+from goodmem_nlweb import (
     GoodMemObjectLookupProvider,
     GoodMemRetrievalProvider,
     GoodMemSpaceError,
     upload_documents,
 )
-from nlweb_goodmem._spaces import find_by_name
+from goodmem_nlweb._spaces import find_by_name
 
 pytestmark = pytest.mark.integration
 
@@ -60,7 +60,7 @@ TYPED_METADATA = {"flag": True, "n": 5, "category": "x"}
 @pytest.fixture(scope="module")
 async def live() -> Any:
     client = AsyncGoodmem(base_url=BASE_URL, api_key=API_KEY, verify=VERIFY_SSL)
-    name = f"nlweb-goodmem-e2e-{uuid.uuid4().hex[:8]}"
+    name = f"goodmem-nlweb-e2e-{uuid.uuid4().hex[:8]}"
     space = await client.spaces.create(
         name=name,
         space_embedders=[{"embedderId": EMBEDDER_ID, "defaultRetrievalWeight": 1.0}],

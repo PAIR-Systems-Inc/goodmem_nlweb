@@ -1,9 +1,9 @@
-# nlweb-goodmem
+# goodmem-nlweb
 
 GoodMem as an [NLWeb](https://github.com/nlweb-ai/NLWeb) retrieval provider.
 
 ```bash
-pip install nlweb-goodmem
+pip install goodmem-nlweb
 ```
 
 ## Configure
@@ -14,7 +14,7 @@ NLWeb's own source tree:
 ```yaml
 retrieval:
   default:
-    import_path: nlweb_goodmem
+    import_path: goodmem_nlweb
     class_name: GoodMemRetrievalProvider
     base_url: https://localhost:8080
     api_key: gm_…
@@ -95,7 +95,7 @@ provider's YAML entry is ignored.
 the interface:
 
 ```python
-from nlweb_goodmem import GoodMemRetrievalProvider, upload_documents
+from goodmem_nlweb import GoodMemRetrievalProvider, upload_documents
 
 provider = GoodMemRetrievalProvider(space_name="nlweb", base_url=…, api_key=…)
 await upload_documents(provider, [
@@ -124,7 +124,7 @@ did land.
 ## Looking objects up by URL
 
 ```python
-from nlweb_goodmem import GoodMemObjectLookupProvider
+from goodmem_nlweb import GoodMemObjectLookupProvider
 
 lookup = GoodMemObjectLookupProvider(space_name="nlweb", base_url=…, api_key=…)
 await lookup.get_by_id("https://ex.com/r/laksa")   # the full Schema.org object
@@ -137,7 +137,7 @@ when an `object_storage` provider named `default` is configured:
 ```yaml
 object_storage:
   default:
-    import_path: nlweb_goodmem
+    import_path: goodmem_nlweb
     class_name: GoodMemObjectLookupProvider
     base_url: https://localhost:8080
     api_key: gm_…

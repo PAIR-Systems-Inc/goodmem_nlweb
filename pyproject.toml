@@ -3,8 +3,8 @@ requires = ["hatchling>=1.18"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nlweb-goodmem"
-version = "0.2.2"
+name = "goodmem-nlweb"
+version = "0.3.0"
 description = "GoodMem as an NLWeb retrieval provider — Schema.org retrieval, site filtering, and object lookup."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -47,10 +47,10 @@ source = "https://github.com/PAIR-Systems-Inc/goodmem_nlweb"
 issues = "https://github.com/PAIR-Systems-Inc/goodmem_nlweb/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/nlweb_goodmem"]
+packages = ["src/goodmem_nlweb"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/nlweb_goodmem", "tests", "README.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
+include = ["src/goodmem_nlweb", "tests", "README.md", "CHANGELOG.md", "LICENSE", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -78,7 +78,7 @@ force-sort-within-sections = true
 
 [tool.mypy]
 python_version = "3.10"
-packages = ["nlweb_goodmem"]
+packages = ["goodmem_nlweb"]
 mypy_path = "src"
 warn_unused_ignores = true
 warn_redundant_casts = true
