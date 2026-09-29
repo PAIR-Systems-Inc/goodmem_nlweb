@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from nlweb_goodmem._typing import AsyncGoodmemClient
+from goodmem_nlweb._typing import AsyncGoodmemClient
 
 # A name is not unique, so the lookup is bounded rather than unbounded.
 MAX_CANDIDATES = 200

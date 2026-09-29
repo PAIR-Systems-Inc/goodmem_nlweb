@@ -5,27 +5,27 @@ package never has to be added to NLWeb's own source tree::
 
     retrieval:
       default:
-        import_path: nlweb_goodmem
+        import_path: goodmem_nlweb
         class_name: GoodMemRetrievalProvider
         base_url: https://localhost:8080
         api_key: gm_…
         space_name: nlweb
 
 NLWeb speaks Schema.org and filters by *site*; GoodMem stores text and
-metadata. ``nlweb_goodmem._schema`` documents the mapping.
+metadata. ``goodmem_nlweb._schema`` documents the mapping.
 """
 
-from nlweb_goodmem._connection import GoodMemConnection
-from nlweb_goodmem._schema import schema_to_text, to_memory_fields
-from nlweb_goodmem._spaces import GoodMemSpaceError
-from nlweb_goodmem.provider import (
+from goodmem_nlweb._connection import GoodMemConnection
+from goodmem_nlweb._schema import schema_to_text, to_memory_fields
+from goodmem_nlweb._spaces import GoodMemSpaceError
+from goodmem_nlweb.provider import (
     GoodMemObjectLookupProvider,
     GoodMemRetrievalProvider,
     GoodMemUploadError,
     upload_documents,
 )
 
-__version__ = "0.2.3"
+__version__ = "0.3.0"
 
 __all__ = [
     "GoodMemConnection",

@@ -23,7 +23,7 @@ import uuid
 
 import pytest
 
-from nlweb_goodmem import (
+from goodmem_nlweb import (
     GoodMemObjectLookupProvider,
     GoodMemRetrievalProvider,
     GoodMemUploadError,
@@ -391,7 +391,7 @@ async def test_a_valid_reranker_id_is_sent_and_an_empty_one_means_none(
 
 # ------------------------------------------------------------ the helper
 def test_require_uuid_accepts_only_the_canonical_form() -> None:
-    from nlweb_goodmem._ids import require_uuid
+    from goodmem_nlweb._ids import require_uuid
 
     assert require_uuid(U.upper(), "space_id") == U
     assert require_uuid(uuid.UUID(U), "space_id") == U
@@ -410,7 +410,7 @@ def test_require_uuid_accepts_only_the_canonical_form() -> None:
 
 def test_a_refusal_does_not_echo_the_value() -> None:
     """A mistyped option may be a credential; it must not land in a log."""
-    from nlweb_goodmem._ids import require_uuid
+    from goodmem_nlweb._ids import require_uuid
 
     with pytest.raises(ValueError) as excinfo:
         require_uuid("gm_SECRET_VALUE", "space_id")

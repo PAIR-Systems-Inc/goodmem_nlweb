@@ -58,7 +58,7 @@ jobs:
         run: |
           python -m venv .venv-smoke
           .venv-smoke/bin/pip install dist/goodmem_nlweb-*.whl
-          .venv-smoke/bin/python -c "from nlweb_goodmem import GoodMemRetrievalProvider, GoodMemObjectLookupProvider, __version__; print('goodmem-nlweb', __version__, 'OK')"
+          .venv-smoke/bin/python -c "from goodmem_nlweb import GoodMemRetrievalProvider, GoodMemObjectLookupProvider, __version__; print('goodmem-nlweb', __version__, 'OK')"
 
   secrets:
     name: no GoodMem keys in the tree

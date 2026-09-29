@@ -9,12 +9,12 @@ import warnings
 from nlweb_core.retrieved_item import RetrievedItem
 from nlweb_core.retriever import ObjectLookupProvider, RetrievalProvider
 
-from nlweb_goodmem._connection import GoodMemConnection
-from nlweb_goodmem._ids import require_uuid
-from nlweb_goodmem._results import classify, hits_from_events
-from nlweb_goodmem._schema import to_memory_fields
-from nlweb_goodmem._spaces import GoodMemSpaceError, resolve
-from nlweb_goodmem.filters import combine, from_mapping, text_equals
+from goodmem_nlweb._connection import GoodMemConnection
+from goodmem_nlweb._ids import require_uuid
+from goodmem_nlweb._results import classify, hits_from_events
+from goodmem_nlweb._schema import to_memory_fields
+from goodmem_nlweb._spaces import GoodMemSpaceError, resolve
+from goodmem_nlweb.filters import combine, from_mapping, text_equals
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -35,7 +35,7 @@ class GoodMemRetrievalProvider(RetrievalProvider):
 
         retrieval:
           default:
-            import_path: nlweb_goodmem
+            import_path: goodmem_nlweb
             class_name: GoodMemRetrievalProvider
             base_url: https://localhost:8080
             api_key: gm_…
@@ -231,7 +231,7 @@ class GoodMemRetrievalProvider(RetrievalProvider):
         site filter. Each value is compared under the cast its Python type
         calls for (``str`` as text, ``bool`` as boolean, ``int``/``float``
         as a number); ``None`` and other types raise ``ValueError`` before a
-        request is made. See :func:`nlweb_goodmem.filters.from_mapping`.
+        request is made. See :func:`goodmem_nlweb.filters.from_mapping`.
         """
         if not query or not query.strip():
             return []

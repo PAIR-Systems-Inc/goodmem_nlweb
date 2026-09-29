@@ -24,7 +24,7 @@ from typing import Any
 import pytest
 import yaml
 
-from nlweb_goodmem import GoodMemRetrievalProvider, filters
+from goodmem_nlweb import GoodMemRetrievalProvider, filters
 from tests.conftest import Recorder, load_json, ndjson_events, ndjson_response
 
 SPACE = load_json("space.json")["spaceId"]

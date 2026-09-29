@@ -19,13 +19,13 @@ from goodmem import AsyncGoodmem
 from nlweb_core.retrieved_item import RetrievedItem
 import pytest
 
-from nlweb_goodmem import (
+from goodmem_nlweb import (
     GoodMemObjectLookupProvider,
     GoodMemRetrievalProvider,
     GoodMemSpaceError,
     upload_documents,
 )
-from nlweb_goodmem._spaces import find_by_name
+from goodmem_nlweb._spaces import find_by_name
 
 pytestmark = pytest.mark.integration
 

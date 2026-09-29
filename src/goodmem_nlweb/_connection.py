@@ -11,7 +11,7 @@ from typing import cast
 from goodmem import AsyncGoodmem
 from typing_extensions import Self
 
-from nlweb_goodmem._typing import AsyncGoodmemClient
+from goodmem_nlweb._typing import AsyncGoodmemClient
 
 
 class GoodMemConnection:

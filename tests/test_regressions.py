@@ -1,4 +1,4 @@
-"""Every test here fails against nlweb-goodmem 0.1.0.
+"""Every test here fails against release 0.1.0.
 
 Fixtures are bytes a live server (v1.0.320) actually sent.
 """
@@ -13,7 +13,7 @@ from nlweb_core.retrieved_item import RetrievedItem
 from nlweb_core.retriever import ObjectLookupProvider, RetrievalProvider
 import pytest
 
-from nlweb_goodmem import (
+from goodmem_nlweb import (
     GoodMemObjectLookupProvider,
     GoodMemRetrievalProvider,
     GoodMemSpaceError,
@@ -256,7 +256,7 @@ async def test_an_unknown_status_code_is_surfaced_not_dropped(recorder, client, 
     events.insert(0, {"status": {"code": "A_CODE_FROM_THE_FUTURE", "message": "hello"}})
     recorder.route("POST", RETRIEVE, ndjson_response(events))
     p = GoodMemRetrievalProvider(space_id=SPACE, client=client)
-    with caplog.at_level(logging.WARNING, logger="nlweb_goodmem.provider"):
+    with caplog.at_level(logging.WARNING, logger="goodmem_nlweb.provider"):
         items = await p.search("noodle soup", SITE, num_results=5)
     assert len(items) == 2, "an unknown code must never discard results"
     assert "UNKNOWN" in caplog.text

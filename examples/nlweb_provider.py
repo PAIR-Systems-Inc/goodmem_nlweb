@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import os
 
-from nlweb_goodmem import GoodMemRetrievalProvider, upload_documents
+from goodmem_nlweb import GoodMemRetrievalProvider, upload_documents
 
 DOCS = [
     {
