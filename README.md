@@ -1,10 +1,14 @@
-# nlweb-goodmem
+# goodmem-nlweb
 
 GoodMem as an [NLWeb](https://github.com/nlweb-ai/NLWeb) retrieval provider.
 
 ```bash
-pip install nlweb-goodmem
+pip install goodmem-nlweb
 ```
+
+Previously published as `nlweb-goodmem` (last version on that name: 0.2.2).
+Only the name you install changed: the import is still `nlweb_goodmem`, and
+the `import_path: nlweb_goodmem` entries below stay as they are.
 
 ## Configure
 

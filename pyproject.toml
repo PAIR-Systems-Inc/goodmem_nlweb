@@ -3,8 +3,8 @@ requires = ["hatchling>=1.18"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nlweb-goodmem"
-version = "0.2.2"
+name = "goodmem-nlweb"
+version = "0.2.3"
 description = "GoodMem as an NLWeb retrieval provider — Schema.org retrieval, site filtering, and object lookup."
 readme = "README.md"
 requires-python = ">=3.10"

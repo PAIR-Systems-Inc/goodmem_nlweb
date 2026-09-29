@@ -5,9 +5,11 @@ name: Publish to PyPI
 # (OpenID Connect). No API token is stored as a GitHub secret.
 #
 # One-time setup on PyPI:
-#   1. Create the project (or claim the name) on https://pypi.org.
-#   2. Open the project settings -> Publishing -> "Add a new pending publisher".
-#      Owner:       <your-github-org-or-user>
+#   1. In the pairsysai organization on https://pypi.org, open
+#      Publishing -> "Add a new pending publisher" for the project
+#      goodmem-nlweb (the first release creates the project).
+#   2. Enter:
+#      Owner:       PAIR-Systems-Inc
 #      Repository:  goodmem_nlweb
 #      Workflow:    publish.yml
 #      Environment: pypi
@@ -66,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/nlweb-goodmem/
+      url: https://pypi.org/project/goodmem-nlweb/
     permissions:
       id-token: write
     steps:

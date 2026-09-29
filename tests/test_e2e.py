@@ -60,7 +60,7 @@ TYPED_METADATA = {"flag": True, "n": 5, "category": "x"}
 @pytest.fixture(scope="module")
 async def live() -> Any:
     client = AsyncGoodmem(base_url=BASE_URL, api_key=API_KEY, verify=VERIFY_SSL)
-    name = f"nlweb-goodmem-e2e-{uuid.uuid4().hex[:8]}"
+    name = f"goodmem-nlweb-e2e-{uuid.uuid4().hex[:8]}"
     space = await client.spaces.create(
         name=name,
         space_embedders=[{"embedderId": EMBEDDER_ID, "defaultRetrievalWeight": 1.0}],
